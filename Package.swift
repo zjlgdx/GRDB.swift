@@ -62,9 +62,19 @@ let package = Package(
     dependencies: dependencies,
     targets: [
         // GRDB+SQLCipher: Delete the GRDBSQLite target
-        .systemLibrary(
+        // Loupe vendored-SQLite patch (ADR-0006 §A0 of zjlgdx/Loupe): the module is a
+        // statically-built SQLite 3.53.4 amalgamation instead of the system library,
+        // compiled with SQLITE_ENABLE_FTS5, SQLITE_DQS=0, SQLITE_ENABLE_STAT4 and
+        // SQLITE_ENABLE_SNAPSHOT. Module name and header surface are unchanged, so
+        // the GRDB sources above build without modification.
+        .target(
             name: "GRDBSQLite",
-            providers: [.apt(["libsqlite3-dev"])]),
+            cSettings: [
+                .define("SQLITE_ENABLE_FTS5"),
+                .define("SQLITE_DQS", to: "0"),
+                .define("SQLITE_ENABLE_STAT4"),
+                .define("SQLITE_ENABLE_SNAPSHOT"),
+            ]),
         // GRDB+SQLCipher: Uncomment the GRDBSQLCipher target
         //.target(
         //    name: "GRDBSQLCipher",
